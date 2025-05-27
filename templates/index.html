@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>News Assistant Chat</title>
+  <!-- Bootstrap CSS for styling -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    crossorigin="anonymous">
+  <style>
+    /* Dark theme styles */
+    body[data-theme='dark'] {
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+
+    /* Light theme styles */
+    body[data-theme='light'] {
+      background-color: #f8f9fa;
+      color: #000;
+    }
+
+    /* Chat container styling */
+    .chat-container {
+      max-width: 800px;
+      /* Increased width */
+      margin: 3rem auto;
+      /* Increased margin for better spacing */
+      padding: 2rem;
+      /* Increased padding for a more spacious look */
+      background-color: #fff;
+      border-radius: 12px;
+      /* Only round bottom corners */
+      /* Slightly larger border radius */
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      /* Enhanced shadow for better visibility */
+    }
+
+    /* Dark theme for chat container */
+    body[data-theme='dark'] .chat-container {
+      background-color: #1f1f1f;
+      border: 1px solid #333;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    }
+
+    body[data-theme='dark'] a {
+      color: #64b5f6;
+    }
+
+    body[data-theme='dark'] .chat-header {
+      background-color: #0d6efd;
+      color: #fff;
+    }
+
+    /* General message bubble styling */
+    .message {
+      padding: 10px 15px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+      max-width: 80%;
+      white-space: pre-wrap;
+    }
+
+    /* Assistant's message bubble */
+    .assistant-message {
+      background-color: #e4e6eb;
+      align-self: flex-start;
+    }
+
+    /* User's message bubble */
+    .user-message {
+      background-color: #0d6efd;
+      color: white;
+      align-self: flex-end;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Dark theme for assistant's message */
+    body[data-theme='dark'] .assistant-message {
+      background-color: #2a2a2a;
+      /* lighter than #1f1f1f */
+    }
+
+    /* Chat box container for messages */
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      /* Increased gap between messages */
+      max-height: 600px;
+      /* Increased height */
+      overflow-y: auto;
+      padding: 15px;
+      /* Increased padding inside the chat box */
+      border: 1px solid #ccc;
+      border-radius: 0 0 10px 10px;
+      /* Only round bottom corners */
+      border-top: 2px solid #ccc;
+    }
+
+    /* Theme toggle button styling */
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+    }
+
+    /* Input box for user messages */
+    .message-input {
+      border: none;
+      border-top: 1px solid #ccc;
+      padding: 15px 20px;
+      font-size: 1.1rem;
+      width: 100%;
+      outline: none;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+
+    .chat-header {
+      background-color: #007bff;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      font-size: 0.95rem;
+      padding: 1rem 1.25rem;
+    }
+
+    .chat-icon {
+      width: 32px;
+      height: 32px;
+      background-color: #fff;
+      color: #0d6efd;
+      border-radius: 50%;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body data-theme="light">
+  <!-- Theme toggle button -->
+  <button id="toggle-theme" class="btn btn-secondary theme-toggle">🌙</button>
+  <!-- Chat container -->
+  <div class="chat-container">
+    <div class="chat-header d-flex align-items-center p-3 text-white">
+      <div class="chat-icon d-flex align-items-center justify-content-center me-2">
+        <i class="fas fa-comments fa-lg"></i>
+      </div>
+      <div>
+        <small class="d-block" style="opacity: 0.85;">CHAT WITH</small>
+        <strong>News Assistant</strong>
+      </div>
+    </div>
+    <!-- Chat box to display messages -->
+    <div id="chat-box" class="chat-box mb-3"></div>
+    <!-- Input box for user to type messages -->
+    <input type="text" id="user-input" class="message-input" placeholder="Type your message...">
+  </div>
+
+  <script>
+    // Get references to DOM elements
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const toggleThemeBtn = document.getElementById("toggle-theme");
+
+    // Step counter for conversation flow
+    let step = 0;
+
+    // Predefined messages for the assistant
+    const messages = [
+      "Hey there! 👋",
+      "I'm your personal news assistant — here to keep you in the loop! 🗞️",
+      "Looking for something in particular today? (Yes or No)",
+      "Cool! What kind of news are you into?",
+      "No problem! Let me grab today’s top headlines for you... 🔍"
+    ];
+
+    // Toggle between light and dark themes
+    toggleThemeBtn.addEventListener("click", () => {
+      const body = document.body;
+      const currentTheme = body.getAttribute("data-theme");
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+      body.setAttribute("data-theme", newTheme);
+      toggleThemeBtn.textContent = newTheme === "dark" ? "☀️" : "🌙";
+    });
+
+    // Add a message to the chat box with typing effect
+    function addMessage(text, isUser = false) {
+      const msg = document.createElement("div");
+      msg.className = `message ${isUser ? "user-message" : "assistant-message"}`;
+
+      if (!isUser) {
+        // Simulate typing effect for the assistant
+        msg.textContent = "...";
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the latest message
+
+        // Delay before showing the actual message
+        setTimeout(() => {
+          msg.innerHTML = text; // Use innerHTML instead of textContent to render HTML
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }, 1000);
+      } else {
+        msg.textContent = text;
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    // Fetch news articles from FastAPI backend
+    async function fetchNews(query) {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/news", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ query })  // Must be an object
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch news");
+
+        const data = await res.json();
+        return data.articles || [];
+      } catch (err) {
+        addMessage("Oops! Couldn't get the news right now. Please try again later.");
+        console.error("Fetch error:", err);
+        return [];
+      }
+    }
+
+    function showResults(articles) {
+  if (articles.length === 0) {
+    addMessage("No articles found.");
+    return;
+  }
+
+  articles.slice(0, 5).forEach(article => {
+    let message = `<strong>${article.title}</strong>`;
+
+    if (article.description) {
+      message += `<br><em>${article.description}</em>`;
+    }
+
+    if (article.urlToImage) {
+      message += `<br><img src="${article.urlToImage}" class="img-fluid my-2 rounded" alt="news image" />`;
+    }
+
+    if (article.source?.name) {
+      message += `<br><strong>Source:</strong> ${article.source.name}`;
+    }
+
+    if (article.author) {
+      message += `<br><strong>Author:</strong> ${article.author}`;
+    }
+
+    if (article.publishedAt) {
+      const date = new Date(article.publishedAt);
+      const formattedDate = date.toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      });
+      message += `<br><strong>Published:</strong> ${formattedDate}`;
+    }
+
+    message += `<br><a href="${article.url}" target="_blank">Read more</a>`;
+
+    addMessage(message);
+  });
+}
+
+    // Handle conversation flow
+    function advanceStep(input) {
+      if (input) addMessage(input, true); // Add user input to chat
+
+      // Restart conversation if user says "Hey"
+      if (input && input.toLowerCase() === "hey") {
+        step = 0; // Reset step to start the conversation
+        advanceStep(); // Start the conversation flow
+        return;
+      }
+
+      switch (step) {
+        case 0:
+        case 1:
+          addMessage(messages[step]);
+          setTimeout(() => advanceStep(), 2000); // Delay for a natural chat feel
+          step++;
+          break;
+        case 2:
+          addMessage(messages[step]);
+          step++;
+          break;
+        case 3:
+          if (input.toLowerCase() === "yes") {
+            addMessage(messages[3]);
+            step = 4;
+          } else {
+            addMessage(messages[4]);
+            fetchNews().then(showResults).then(() => {
+              step = 5; // Move to follow-up step
+              addMessage("Looking for anything else? (Yes or No)");
+            });
+          }
+          break;
+        case 4:
+          addMessage(`Alright, looking up some '${input}' news for you... 🔎`);
+          fetchNews(input).then(showResults).then(() => {
+            step = 5; // Move to follow-up step
+            addMessage("Looking for anything else? (Yes or No)");
+          });
+          break;
+        case 5:
+          if (input.toLowerCase() === "no") {
+            addMessage("Got it! I'm here if you need more news later. 👊 Just say 'Hey' if you need anything!");
+            step = 99; // End conversation
+          } else {
+            addMessage("What type of news are you interested in?");
+            step = 4; // Go back to step 4 for more news
+          }
+          break;
+      }
+    }
+
+    // Listen for user input
+    userInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const value = userInput.value.trim();
+        if (value) {
+          userInput.value = ""; // Clear input box
+          advanceStep(value); // Process input
+        }
+      }
+    });
+
+    // Start the conversation
+    advanceStep();
+  </script>
+</body>
+
+</html>
