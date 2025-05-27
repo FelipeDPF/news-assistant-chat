@@ -39,7 +39,7 @@ NEWS_APP/
 1. Clone the Repository
 
 ```
-git clone https://github.com/your-username/news-assistant-chat.git
+git clone https://github.com/FelipeDPF/news-assistant-chat.git
 cd news-assistant-chat
 ```
 
