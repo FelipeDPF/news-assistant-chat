@@ -18,7 +18,7 @@ This is a simple conversational web app built with FastAPI and vanilla JavaScrip
 
 ---
 
-![News Assistant Demo](./demo.gif)
+![News Assistant Demo](./demo1.gif)
 
 ## 🗂 Project Structure
 
