@@ -1,6 +1,6 @@
 # 📰 News Assistant Chat App
 
-This is a simple conversational web app built with FastAPI and vanilla JavaScript that lets users interact with a chatbot-style news assistant. It fetches real-time news using the NewsAPI and presents it in a friendly chat interface styled with Bootstrap 5.
+This is a simple conversational web app built with Python (FastAPI) and vanilla JavaScript that lets users interact with a chatbot-style news assistant. It fetches real-time news using the NewsAPI and presents it in a friendly chat interface styled with Bootstrap 5.
 
 ---
 
